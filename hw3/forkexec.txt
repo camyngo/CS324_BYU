@@ -1,0 +1,168 @@
+PART 1:
+1) Briefly describe its behavior.
+
+exec.c is a program that runs other programs. It first prints out the current
+processId and they sleeps for 30ms. Then it checks that
+at least one command line argument is passed in, exits if no argument is passed in. Then it proceeds to run
+each program in a new process.
+
+2) Under what condition(s) will the final printf() statement get executed?
+
+if there are arguments it will print to stdout -> "Running exec of <first argument>"
+it will then run execve on the first argument
+it will then print to stdout -> "End of program <program name>"
+
+
+PART 2:
+Pane 1:
+./exec /bin/cat  
+Program "./exec" has pid 2435687. Sleeping.
+Running exec of "/bin/cat"
+
+Pane 2:
+4)
+ps -o user,pid,ppid,state,ucmd -p 2435687
+USER         PID    PPID S CMD
+camyngo  2435687 2431101 S ./exec /bin/cat
+ps -o user,pid,ppid,state,ucmd -p 2435687
+USER         PID    PPID S CMD
+camyngo  2435687 2431101 S /bin/cat
+
+5) 
+Same fields: PID, PPID, State
+Different: CMD
+Because the output is derived from different processes that are being executed by exec.c
+
+6)
+./exec /does-not-exist
+Program "./exec" has pid 2444348. Sleeping.
+Running exec of "/does-not-exist"
+End of program "./exec".
+
+Since the program doesn't exist, the process terminated.
+
+PART 3:
+7. *Briefly describe its behavior.*
+the program runs fork(), if it returns -1 it terminates
+then it prints the section and pid, then goes to sleep
+The two processes run concurrently, and we can see that the childprocess
+prints out Section B since pid is initiazed to 0, while the parent
+prints Section C because it's context initialized the variable pid to 
+the return value of fork()
+
+8. *Which sections (i.e., of "A", "B", "C", and "D") are run by the parent
+process and, which are run by the child process?*
+
+Parent: A, C
+Child: A, B
+
+both return before the code can reach D
+
+PART 4:
+9)
+./fork
+Starting program; process has pid 2451919
+Section A;  pid 2451919
+Section A;  pid 2451920
+Section C
+Section B
+Section B done sleeping                                                                                                │
+Section C done sleeping
+
+ps -p 2451919 -p 2451920 -o user,pid,ppid,state,ucmd --forest
+USER         PID    PPID S CMD
+camyngo  2451919 2431101 S fork
+camyngo  2451920 2451919 S  \_ fork
+
+ps -p 2196884 -p 2196885 -o user,pid,ppid,state,ucmd --forest
+USER         PID    PPID S CMD
+camyngo  2451919 2431101 S fork
+camyngo  2451920 2451919 Z  \_ fork <defunct>
+
+10)
+the first ps command is run when both processes are running. The second
+happens right after the child process finishes. That's why we see
+that the fork is defunct.
+
+11) call wait(Null) to reap the child after it exits, and it needs to be put in an else statement that is reachable only by the parent after fork is called
+
+12) 
+ps -p 2199295 -p 2199296 -o user,pid,ppid,state,ucmd --forest
+USER         PID    PPID S CMD
+camyngo  2456490 2431101 S fork
+camyngo  2456491 2456490 S  \_ fork
+
+ps -p 2199295 -p 2199296 -o user,pid,ppid,state,ucmd --forest
+USER         PID    PPID S CMD
+camyngo  2456490 2431101 S fork
+
+13) The user, pid, and s are the same, but the ppid and cmd have changed. This is because the parent was terminated before the child could finish and so it was made a child of process 1
+
+
+14)
+ps -p 2201275 -p 2201276 -o user,pid,ppid,state,ucmd --forest
+USER         PID    PPID S CMD
+camyngo  2201275 2179825 S fork
+camyngo  2201276 2201275 S  \_ fork
+
+ps -p 2201275 -p 2201276 -o user,pid,ppid,state,ucmd --forest
+USER         PID    PPID S CMD
+camyngo  2201276 2201275 S fork
+
+15)
+In this scenario, the parent process completes first. The child process
+continues to run even after the parent completes, shown by 
+the second ps.
+
+PART 5:
+16) Contents of fork-output.txt
+BEFORE FORK
+SECTION A
+SECTION A
+SECTION B
+SECTION C
+
+17) 
+As expected, the files are written in the order of the process' 
+actions. With the child process writing first in section B, then
+the parent in section C. Section D is never reached since
+we exit in section C.
+
+PART 6:
+18)
+Starting program; process has pid 2464431
+Section A;  pid 2464431
+Section A;  pid 2464435
+Section B
+Section B done sleeping
+hello from Section B 
+Section C
+Section C done sleeping
+
+19)
+Starting program; process has pid 2470309
+Section A;  pid 2470309
+Section A;  pid 2470310
+Section B;  pid 2470310
+Section B done sleeping
+Running exec of "/bin/cat"
+foobar
+Section C;  pid 2470309
+Section C done sleeping
+
+20)
+Section A;  pid 2477542
+Section A;  pid 2477543
+Section B; pid 2477543
+Section B done sleeping
+Running exec of "/bin/cat"
+Section C; pid 2477542
+Section C done sleeping
+
+fork-output.txt:
+BEFORE FORK
+SECTION A
+SECTION C
+SECTION A
+SECTION B
+foobar

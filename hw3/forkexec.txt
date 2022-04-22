@@ -51,7 +51,7 @@ prints Section C because it's context initialized the variable pid to
 the return value of fork()
 
 8. *Which sections (i.e., of "A", "B", "C", and "D") are run by the parent
-process and, which are run by the child process?*
+process and, which are run by the child process?* because we call execve() in section B. 
 
 Parent: A, C
 Child: A, B

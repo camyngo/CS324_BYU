@@ -1,0 +1,99 @@
+PART 1:
+1. ps -Lo user,pid,ppid,nlwp,lwp,state,ucmd -C echoserveri | grep ^camyngo\\\|USER
+USER         PID    PPID NLWP     LWP S CMD
+camyngo  1923453 1869409    1 1923453 S echoserveri
+
+2. From the output, it looks like 1 process and 1 thread is running. They are running becasue I started the program ./echoserveri which 
+  which has 1 process running on 1 thread. 
+
+3. So when i first press control + c on panel 1, th server were able to connect to panel 2 and same goes for 3 after i press ctrl+c in panel 2. This is because the server right now can only handle 1 request, so when we close the first request, it opens the second request and so on..
+
+PART 2:
+4. ps -Lo user,pid,ppid,nlwp,lwp,state,ucmd -C echoserverp | grep ^camyngo\\\|USER
+
+USER         PID    PPID NLWP     LWP S CMD
+camyngo  1924506 1869409    1 1924506 S echoserverp
+camyngo  1924645 1924506    1 1924645 S echoserverp
+camyngo  1924670 1924506    1 1924670 S echoserverp
+camyngo  1924670 1924506    1 1924670 S echoserverp
+
+5. From the output, it looks like 4 processes and 4 threads are running. They are running becasue I started the program ./echoserverp which handles the given
+  concurrent processes. 
+
+
+PART 3: 
+6. ps -Lo user,pid,ppid,nlwp,lwp,state,ucmd -C echoservert | grep ^camyngo\\\|USER
+USER         PID    PPID NLWP     LWP S CMD
+camyngo  1930001 1869409    4 1930001 S echoservert
+camyngo  1930001 1869409    4 1930039 S echoservert
+camyngo  1930001 1869409    4 1930090 S echoservert
+camyngo  1930001 1869409    4 1930114 S echoservert
+
+7. From the output, it looks like 1 process and 4 threads are running. They are running becasue I started the program ./echoservert 
+  which handles the given processes and threads.
+
+PART 4:
+8.ps -Lo user,pid,ppid,nlwp,lwp,state,ucmd -C echoservert_pre | grep ^camyngo\\\|USER
+USER         PID    PPID NLWP     LWP S CMD
+camyngo  1929073 1869409    9 1929073 S echoservert_pre
+camyngo  1929073 1869409    9 1929074 S echoservert_pre
+camyngo  1929073 1869409    9 1929075 S echoservert_pre
+camyngo  1929073 1869409    9 1929076 S echoservert_pre
+camyngo  1929073 1869409    9 1929077 S echoservert_pre
+camyngo  1929073 1869409    9 1929078 S echoservert_pre
+camyngo  1929073 1869409    9 1929079 S echoservert_pre
+camyngo  1929073 1869409    9 1929080 S echoservert_pre
+camyngo  1929073 1869409    9 1929081 S echoservert_pre
+
+
+9.
+From the output, it looks like 1 process and 9 threads are running. They are running becasue I started the program ./echoservert_pre
+  which, executed, creates the given processes and threads. 
+
+PART 5: 
+10.How many producer threads are running?
+- there is one producer thread running
+
+11.How many consumer threads are running?
+- 8 consumer threads running 
+
+12.What is the producer thread waiting on?
+- the producer thread is waiting on either a new connection request
+
+13.What are the consumer threads waiting on?
+- the consumers are waiting for the items to be non-zero and send over from producer to remove it
+
+14. What event changes the state of the producer (i.e., so it is no longer waiting)?
+- events that change producer is either new connection or when the queue is previously full 
+
+15. tWhat event changes the state of the consumer(s)?
+- when the producer thread put things on the queue 
+
+16.How many consumers change state?
+- 1 consumer changing states because we only accept one thing
+
+
+17. What event changes the state of the consumer(s)? (this question was accidentally a repeat of 15 :))
+- when the producer thread put things on the queue 
+
+18.What is the producer thread now waiting on?
+- still waiting on the connection request
+
+19. Rank the terms in decreasing (most expensive to least expensive) order of run-time cost for handling a given client.
+- most expensive for handle a given client: processed-based because each process only handle 1 thread
+2nd most expensive : thread-based with spawning threads on-the-fly (new threads everytime)
+least expensive: threadpool-based (set number of threads)
+
+20. Which (one or more) of the three, as implemented in this assignment, has/have an explicit limitation in terms of number of clients that can be handled concurrently?
+- processed-based because each process only handle 1 thread/client, and this is very limited
+- threadpool-based because you can only pass in a certain amount of clients
+
+21. Which (one or more) of the three of the models allow(s) allow sharing of memory and data structures without the use of inter-process communication (e.g., pipes, sockets)?
+- threading allow use to pass information between clients wihout using sockets => both of the threads allow sharing of memory and data structures without the use of inter-process communication
+
+22. Which (one or more) of the three of the models seems to be the least complex to implement?
+- thread-based with spawning threads on-the-fly
+
+
+
+

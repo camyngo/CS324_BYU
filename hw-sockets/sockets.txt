@@ -1,0 +1,136 @@
+Part 1: UDP Sockets
+1.What two system calls are used to create and prepare a (UDP) client socket for reading and writing, before you ever read or write to that socket?
+- the system call is doing stuff that the server doesnt have access to
+- socket() and connect() are the 2 systems call
+
+2.Describe how your client code for reading and writing would be different if the second call were not used. See the man page for udp, specifically within the first two paragraphs of the "DESCRIPTION" section.
+- normally we would use send(2) to specific an address and then connect(2), but its not require to use send(20) 
+- if we dont use connect(2), then we need to use send(2) to specific where we going
+
+3.Where do the strings come from that are sent to the server (i.e., written to the socket)?
+- from the client command line argument
+
+4. The server prints out the remote (i.e., client-side) address and port associated with the incoming message. What do you notice about the port value used by the client for different messages sent using the same socket (i.e., from running ./client a single time)?
+before client call:  ./server -4 1026
+after client call: Received 4 bytes from ::ffff:127.0.0.1:40898
+- it looks like it prints out the IP address but the port is different on what called on the server
+
+5. What do you notice about the port value used by the client for different messages sent using different sockets (i.e., from running ./client multiple times)?
+-every time the client called, a new port was assigned to the IP address 
+
+* 6.Looking inside server.c, how many sockets does the server use to communicate with multiple clients? For example, one for each client, one for all clients, etc.
+- one socket for all clients
+
+
+7.How many total calls to send() / write() were made by the client? Refer to client.c.
+- it looks like there are 3 calls being made to the client 
+
+8.How many messages were received by the kernel of the server-side process before the server called recvfrom() the second time (i.e., between the server's first and seconds calls to recvfrom())?
+- look like 3 messages were sent before received called the 2nd time
+
+9.How many total calls to recvfrom() were required for the server process to read all the messages/bytes that were sent?
+- 3 totals call
+
+10.Why didn't the server read all the messages that were ready with a single call to recvfrom()? Hint: see the man page for udp, specifically within the first three paragraphs of the "DESCRIPTION" section.
+- because all receive operations return only one packet of a certain size and cant be bigger than that. When it is bigger, the packet is truncated. 
+
+Part 2: TCP Sockets
+
+11.How does the role of the original socket (i.e., sfd, returned from the call to socket()), after listen() is called on it, compare with the role of the socket returned from the call to accept()? See the man pages for listen() and accept().
+- listen is waiting for new connection
+- accept is handling the connection 
+
+12.With the new changes you have implemented, how have the semantics associated with the call to connect() changed? That is, what will happen now when you call connect() that is different from when you called connect() with a UDP socket? See the man pages for connect(), tcp, and udp.
+- tcp is doing the 3 ways handshake while udp doesnt do this
+
+13. Why does the ss output show an established connection ("ESTAB") between client and server before any messages are sent from client to server? Hint: see the man page for tcp, specifically within the first two paragraphs of the "DESCRIPTION" section.
+- new incoming connections, first bind(2) the socket to a local address and port and then call listen(2) to put the socke into the listening state.  After that a new socket for eachincoming connection can be accepted using accept(2).
+- This is called the 3 ways handshake, and because of this, the client and server already connected before the accept(2) get called
+- tcp calling listening(2) to connect with server before accepted(2)
+
+*14.The server prints out the remote (i.e., client-side) address and port associated with the incoming message. What do you notice about the port value used by the client for different messages sent using the same socket (i.e., from running ./client a single time)?
+- port value for client and server is different
+
+*15.What do you notice about the port value used by the client for different messages sent using different sockets (i.e., from running ./client multiple times)?
+- everytime we run client, the server receives a new port
+
+*16.Looking inside server.c, how many sockets does the server use to communicate with multiple clients? For example, one for each client, one for all clients, etc. How does this compare to the answer to the behavior for a server-side UDP socket (see #6)?
+- also one socket to all clients (the same)?
+
+17.How many total calls to send() / write() were made by the client? Refer to client.c.
+- 3 calls
+
+18.How many messages were received by the kernel of the server-side process before the server called recv() the second time (i.e., between the server's first and seconds calls to recv())?
+-3 calls
+
+19.How many total calls to recv() were required for the server process to read all the messages/bytes that were sent?
+-2 calls
+
+20.How and why does the answer to #19 differ from that from #9? Hint: see the man page for tcp, specifically within the first paragraph of the "DESCRIPTION" section.
+- udp can only be receive one by one
+- tcp can recevies a stream of messages thats why its different
+
+Part 3: Making Your Client Issue HTTP Requests
+
+21. What is the output of sha1sum?
+- 0ef39a3f241cdd6552ad131e01afa9171b3dab8d
+
+22. Now, execute your client program such that:
+
+you are sending data to the standard HTTP port (80) at www-notls.imaal.byu.edu;
+you are redirecting the contents of http-bestill.txt to the standard input of the client process (using input redirection on the shell); and
+you are redirecting the output of your client process to bestill.txt.
+
+- command: ./client www-notls.imaal.byu.edu 80 < http-bestill.txt
+
+- command: ./client www-notls.imaal.byu.edu 80 < http-bestill.txt > bestill.txt
+
+23.
+HTTP/1.1 200 OK
+Date: Sat, 26 Feb 2022 04:34:53 GMT
+Server: Apache/2.4.51 (Debian)
+Upgrade: h2c
+Connection: Upgrade, close
+Content-length: 809
+Vary: Accept-Encoding
+Content-Type: text/plain
+
+
+1. Be still, my soul: The Lord is on thy side;
+With patience bear thy cross of grief or pain.
+Leave to thy God to order and provide;
+In ev'ry change he faithful will remain.
+Be still, my soul: Thy best, thy heav'nly Friend
+Thru thorny ways leads to a joyful end.
+
+2. Be still, my soul: Thy God doth undertake
+To guide the future as he has the past.
+Thy hope, thy confidence let nothing shake;
+All now mysterious shall be bright at last.
+Be still, my soul: The waves and winds still know
+His voice who ruled them while he dwelt below.
+
+3. Be still, my soul: The hour is hast'ning on
+When we shall be forever with the Lord,
+When disappointment, grief, and fear are gone,
+Sorrow forgot, love's purest joys restored.
+Be still, my soul: When change and tears are past,
+All safe and blessed we shall meet at last.
+
+
+24. You are sending data to the standard HTTP port (80) at www-notls.imaal.byu.edu;
+you are redirecting the contents of http-socket.txt to the standard input of the client process (using input redirection on the shell);
+you are redirecting the standard output of your client process to ./strip_http.py; and
+you are redirecting the standard output of ./strip_http.py to socket.jpg. 
+- command: ./client www-notls.imaal.byu.edu 80 < http-socket.txt | ./strip_http.py > socket.jpg
+
+25. c03ce59f9d77e2a3cf001d9dfcb66675ac1a5a81  socket.jpg
+
+26.What happens when you call read() (or recv()) on an open socket (UDP or TCP), and there are no messages are available at the socket for reading? Hint: see the man page for recv(), especially the "DESCRIPTION" section.
+-If no messages are available at the socket, the receive calls wait for a message to arrive, unless the socket is nonblocking (see fcntl(2)), in which case the value -1 is returned and errno is set to EAGAIN or EWOULDBLOCK.
+
+27.What happens when you call read() (or recv()) on an open socket (UDP or TCP), and the amount of data available is less than the requested amount? Hint: see the man page for recv(), especially the "DESCRIPTION" section.
+- Upon return, addrlen is updated to contain the actual size of the source address.  The returned address is truncated if the buffer provided is too small; in this case, addrlen will return a value greater than was supplied to the call.
+
+28.What happens you you call read() (or recv()) on an open UDP socket, and you specify a length that is less than the length of the next datagram? Hint: see the man page for udp, specifically within the first three paragraphs of the "DESCRIPTION" section.
+-The receive return any data available, up to the requested amount and do not wait for receipt of the full amount requested.
